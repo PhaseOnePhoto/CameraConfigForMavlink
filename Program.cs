@@ -25,6 +25,7 @@ OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using P1.CameraSdk;
 
@@ -39,17 +40,16 @@ namespace CameraConfigForMavlink
 
             ConnectCamera(ref camera);
 
-            if (camera is null)
+            if (camera is not null && CheckFirmwareVersion(camera, "5.05.23"))
             {
-                return;
+                SetEnumProperty(camera, 260, 4);
+                SetEnumProperty(camera, 256, 3);
+                SetEnumProperty(camera, 142, 4);
+                SetEnumProperty(camera, 1248, 0);
             }
 
-            CheckFirmwareVersion(camera);
-
-            SetEnumProperty(camera, 260, 4);
-            SetEnumProperty(camera, 256, 3);
-            SetEnumProperty(camera, 142, 4);
-            SetEnumProperty(camera, 1248, 0);
+            Console.WriteLine("Press ENTER to continue...");
+            Console.ReadLine();
         }
 
         static void SetEnumProperty(Camera camera, uint id, uint value)
@@ -57,17 +57,40 @@ namespace CameraConfigForMavlink
             try
             {
                 PropertySpec propertySpec = camera.GetPropertySpec(id);
-                PropertyValue propertyValue = camera.GetProperty(id);
 
-                propertyValue.IntValue = value;
+                if (propertySpec.Value.IntValue == value)
+                {
+                    Console.WriteLine("{0} (property {1}) already set to {2} (index {3})",
+                        propertySpec.Name,
+                        id,
+                        propertySpec.Value.PresentationString,
+                        propertySpec.Value.IntValue);
+                }
+                else
+                {
+                    Console.WriteLine("{0} (property {1}) was set to {2} (index {3})",
+                        propertySpec.Name,
+                        id,
+                        propertySpec.Value.PresentationString,
+                        propertySpec.Value.IntValue);
 
-                camera.SetProperty(id, propertyValue);
+                    while (propertySpec.Value.IntValue != value)
+                    {
+                        propertySpec.Value.IntValue = value;
 
-                Console.WriteLine("{0} ({1}) set to {2}",
-                    propertySpec.Name,
-                    id,
-                    propertyValue.ToString()
-                );
+                        camera.SetProperty(id, propertySpec.Value);
+
+                        Thread.Sleep(100);
+
+                        propertySpec = camera.GetPropertySpec(id);
+
+                        Console.WriteLine("{0} (property {1}) now set to {2} (index {3})",
+                            propertySpec.Name,
+                            id,
+                            propertySpec.Value.PresentationString,
+                            propertySpec.Value.IntValue);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -77,17 +100,19 @@ namespace CameraConfigForMavlink
             }
         }
 
-        static void CheckFirmwareVersion(Camera camera)
+        static bool CheckFirmwareVersion(Camera camera, string requiredFirmwareVersion)
         {
+            bool success = false;
+
             try
             {
                 PropertyValue firmwareVersion = camera.GetProperty(4);
 
-                string requiredFirmwareVersion = "5.05.23";
-
                 if (firmwareVersion.ToString() == requiredFirmwareVersion)
                 {
                     Console.WriteLine($"Camera firmware version verified ({requiredFirmwareVersion})");
+
+                    success = true;
                 }
                 else
                 {
@@ -98,6 +123,8 @@ namespace CameraConfigForMavlink
             {
                 Console.WriteLine("Could not check camera firmware version.");
             }
+
+            return success;
         }
 
         static void ConnectCamera(ref Camera camera)
