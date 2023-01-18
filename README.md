@@ -18,6 +18,17 @@ This application has to be run on a Windows computer and requires a USB-C to USB
 * Power on the camera
 * Run `CameraConfigForMavlink.exe`
 
+# Building the code
+
+* Install Visual Studio 2022 including .NET 6 (https://visualstudio.microsoft.com/vs/community)
+* Install git (https://git-scm.com/downloads)
+* Open a PowerShell terminal
+* Clone this repository: `git clone https://github.com/PhaseOnePhoto/CameraConfigForMavlink.git`
+* `cd` to this repository: `cd .\CameraConfigForMalvink\`
+* build the code: `dotnet build`
+* `cd` to the folder containing the binary executable file: `cd .\bin\Debug\net6.0\win-x64\`
+* Run the application: `.\CameraConfigForMavlink.exe`
+
 # Known limitations
 
 * If iX Capture or Capture One has been connected before, the camera needs to be rebooted.
