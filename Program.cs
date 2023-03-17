@@ -60,6 +60,8 @@ namespace CameraConfigForMavlink
                 SetIntProperty(camera, 1212, 0);
             }
 
+            camera.Close();
+
             Console.WriteLine("Press ENTER to continue");
             Console.ReadLine();
         }
