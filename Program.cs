@@ -36,23 +36,79 @@ namespace CameraConfigForMavlink
     {
         static void Main(string[] args)
         {
+            string requiredFirmwareVersion = "5.05.23";
+
+            if (args.Length == 1)
+            {
+                requiredFirmwareVersion = args[0];
+            }
+
             Camera camera = null;
 
             ConnectCamera(ref camera);
 
-            if (camera is not null && CheckFirmwareVersion(camera, "5.05.23"))
+            if (camera is not null && CheckFirmwareVersion(camera, requiredFirmwareVersion))
             {
-                SetEnumProperty(camera, 260, 4);
-                SetEnumProperty(camera, 256, 3);
-                SetEnumProperty(camera, 142, 4);
-                SetEnumProperty(camera, 1248, 0);
+                RestoreFactorySettings(camera);
+
+                SetIntProperty(camera, 260, 4);
+                SetIntProperty(camera, 256, 3);
+                SetIntProperty(camera, 142, 4);
+                SetIntProperty(camera, 1248, 0);
+                SetIntProperty(camera, 1310, 50);
+                SetIntProperty(camera, 1311, 50);
+                SetIntProperty(camera, 1212, 0);
             }
 
-            Console.WriteLine("Press ENTER to continue...");
+            Console.WriteLine("Press ENTER to continue");
             Console.ReadLine();
         }
 
-        static void SetEnumProperty(Camera camera, uint id, uint value)
+        static uint restorePropertyId = 1291;
+
+        static void RestoreFactorySettings(Camera camera)
+        {
+            Console.Write("Restoring factory settings");
+
+            try
+            {
+                PropertyValue propertyValue = camera.GetProperty(restorePropertyId);
+
+                propertyValue.IntValue = 1;
+
+                camera.SetProperty(restorePropertyId, propertyValue);
+
+                bool restoreDetected = false;
+                bool done = false;
+
+                while (!done)
+                {
+                    propertyValue = camera.GetProperty(restorePropertyId);
+
+                    if (propertyValue.IntValue == 1)
+                    {
+                        Console.Write(".");
+
+                        restoreDetected = true;
+                    }
+
+                    if (restoreDetected && propertyValue.IntValue == 0)
+                    {
+                        done = true;
+                    }
+
+                    Thread.Sleep(20);
+                }
+
+                Console.WriteLine("Done");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Could not restore factory settings: {e}");
+            }
+        }
+
+        static void SetIntProperty(Camera camera, uint id, uint value)
         {
             try
             {
@@ -63,7 +119,7 @@ namespace CameraConfigForMavlink
                     Console.WriteLine("{0} (property {1}) already set to {2} (index {3})",
                         propertySpec.Name,
                         id,
-                        propertySpec.Value.PresentationString,
+                        getPresentationString(propertySpec),
                         propertySpec.Value.IntValue);
                 }
                 else
@@ -71,7 +127,7 @@ namespace CameraConfigForMavlink
                     Console.WriteLine("{0} (property {1}) was set to {2} (index {3})",
                         propertySpec.Name,
                         id,
-                        propertySpec.Value.PresentationString,
+                        getPresentationString(propertySpec),
                         propertySpec.Value.IntValue);
 
                     while (propertySpec.Value.IntValue != value)
@@ -87,7 +143,7 @@ namespace CameraConfigForMavlink
                         Console.WriteLine("{0} (property {1}) now set to {2} (index {3})",
                             propertySpec.Name,
                             id,
-                            propertySpec.Value.PresentationString,
+                            getPresentationString(propertySpec),
                             propertySpec.Value.IntValue);
                     }
                 }
@@ -98,6 +154,11 @@ namespace CameraConfigForMavlink
 
                 return;
             }
+        }
+
+        static string getPresentationString(PropertySpec propertySpec)
+        {
+            return propertySpec.Value.PresentationString == "" ? propertySpec.Value.IntValue.ToString() : propertySpec.Value.PresentationString;
         }
 
         static bool CheckFirmwareVersion(Camera camera, string requiredFirmwareVersion)
@@ -135,7 +196,7 @@ namespace CameraConfigForMavlink
             }
             catch
             {
-                Console.WriteLine($"Could not connect to camera.");
+                Console.WriteLine($"Could not connect to camera. Are Firmware Updater and Capture One closed?");
 
                 return;
             }
