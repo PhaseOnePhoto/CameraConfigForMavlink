@@ -1,26 +1,51 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <PublishReadyToRun>true</PublishReadyToRun>
+		<OutputType>Exe</OutputType>
+		<Configuration>Release</Configuration>
+		<DebugType>none</DebugType>
+		<RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+		<PublishTrimmed>true</PublishTrimmed>
+		<PublishReadyToRun>true</PublishReadyToRun>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <Title>Camera Configurator for MAVLlink</Title>
+    <Version>0.3.0</Version>
+    <Authors>David Wuthier</Authors>
+    <Company>Phase One A/S</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Copyright>2022-2023 Phase One A/S</Copyright>
+    <ApplicationIcon>p3.ico</ApplicationIcon>
+    <PackageIcon>p3.png</PackageIcon>
   </PropertyGroup>
 
-  <ItemGroup>
 
+
+  <ItemGroup>
+    <Content Include="p3.ico" />
+    <None Update="p3.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <!-- Include CameraSDK C# API -->
     <Reference Include="CameraSdkCs.dll">
         <HintPath>dest/Cs/CameraSdkCs.dll</HintPath>
     </Reference>
-
     <!-- Dependency of CameraSDK C# API -->
     <None Include="dest/Cs/CameraSdkCBindingsForCs.dll" Link="CameraSdkCBindingsForCs.dll">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-
   </ItemGroup>
 
 </Project>
