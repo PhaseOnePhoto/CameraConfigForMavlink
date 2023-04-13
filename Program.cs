@@ -51,13 +51,12 @@ namespace CameraConfigForMavlink
             {
                 RestoreFactorySettings(camera);
 
-                SetIntProperty(camera, 260, 4);
-                SetIntProperty(camera, 256, 3);
                 SetIntProperty(camera, 142, 4);
-                SetIntProperty(camera, 1248, 0);
-                SetIntProperty(camera, 1310, 50);
-                SetIntProperty(camera, 1311, 50);
+                SetIntProperty(camera, 256, 3);
+                SetIntProperty(camera, 260, 4);
                 SetIntProperty(camera, 1212, 0);
+                SetIntProperty(camera, 1220, 1);
+                SetIntProperty(camera, 1221, 1);
             }
 
             camera.Close();
@@ -83,7 +82,7 @@ namespace CameraConfigForMavlink
                 bool restoreDetected = false;
                 bool done = false;
 
-                while (!done)
+                for (int i = 0; !done || i < 100; i++)
                 {
                     propertyValue = camera.GetProperty(restorePropertyId);
 
@@ -102,7 +101,14 @@ namespace CameraConfigForMavlink
                     Thread.Sleep(20);
                 }
 
-                Console.WriteLine("Done");
+                if (done)
+                {
+                    Console.WriteLine("Done");
+                }
+                else
+                {
+                    Console.WriteLine("Timeout on restoring factory settings");
+                }
             }
             catch (Exception e)
             {
@@ -138,7 +144,7 @@ namespace CameraConfigForMavlink
 
                         camera.SetProperty(id, propertySpec.Value);
 
-                        Thread.Sleep(100);
+                        Thread.Sleep(200);
 
                         propertySpec = camera.GetPropertySpec(id);
 
